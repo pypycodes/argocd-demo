@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: nginx-appset
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - env: dev
+        namespace: dev
+      - env: qa
+        namespace: qa
+
+  template:
+    metadata:
+      name: 'nginx-{{env}}'
+    spec:
+      project: default
+
+      source:
+        repoURL: https://github.com/pypycodes/argocd-demo.git
+        targetRevision: HEAD
+        path: nginx-{{env}}
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+
+        syncOptions:
+          - CreateNamespace=true
